@@ -11,7 +11,7 @@ const App = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:3001/login', { username, password });
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/login`, { username, password });
             setToken(response.data.token);
             setErrorMessage(''); // Clear error message on successful login
         } catch (error) {
@@ -29,7 +29,7 @@ const App = () => {
         formData.append('file', file);
 
         try {
-            const response = await axios.post('http://localhost:3001/upload', formData, {
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/upload`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': token
