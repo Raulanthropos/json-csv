@@ -51,7 +51,7 @@ const App = () => {
 
     return (
         <div style={{ textAlign: 'center' , marginTop: '50px', padding: '20px', border: '1px solid black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-            <h1>Upload JSON and Get CSV</h1>
+            <h1>Upload JSON and Get CSV, stripped from the HTML tags</h1>
             {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
             {!token ? (
                 <form onSubmit={handleLogin}>
