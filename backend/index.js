@@ -5,7 +5,9 @@ const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
 require("dotenv").config(); // Load environment variables
+const pool = require("./db"); // Database connection
 
 const app = express();
 const port = process.env.LOCAL_PORT || 5000;
@@ -14,12 +16,6 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const SECRET_KEY = process.env.SECRET_KEY; // Use environment variable
-
-// Dummy user for authentication
-const user = {
-  username: "iaslanidou",
-  password: "holypa$$word",
-};
 
 // Middleware to authenticate JWT token
 function authenticateToken(req, res, next) {
@@ -34,13 +30,47 @@ function authenticateToken(req, res, next) {
 }
 
 // Login endpoint
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+    console.log("Login attempt:", username, password); // Log the login attempt
+    try {
+      const result = await pool.query('SELECT * FROM public.users WHERE username = $1', [username]);
+      const user = result.rows[0];
+      if (user) {
+        console.log("Stored password hash:", user.password); // Log stored password hash
+        const isMatch = await bcrypt.compare(password, user.password);
+        console.log("Password match result:", isMatch); // Log password comparison result
+        if (isMatch) {
+          const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
+          res.json({ token });
+        } else {
+          console.log("Unauthorized: Incorrect username or password"); // Log unauthorized attempts
+          res.sendStatus(401);
+        }
+      } else {
+        console.log("Unauthorized: User not found"); // Log user not found
+        res.sendStatus(401);
+      }
+    } catch (err) {
+      console.error(err);
+      res.sendStatus(500);
+    }
+  });
+  
+
+// Register endpoint
+app.post("/register", async (req, res) => {
   const { username, password } = req.body;
-  if (username === user.username && password === user.password) {
-    const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
-    res.json({ token });
-  } else {
-    res.sendStatus(401);
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *",
+      [username, hashedPassword]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
