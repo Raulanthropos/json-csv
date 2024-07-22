@@ -1,12 +1,24 @@
-const { Pool } = require('pg');
+const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+const uri = process.env.MONGO_URI; // Add your MongoDB URI to the .env file
+
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
-module.exports = pool;
+async function connectDB() {
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('Failed to connect to MongoDB', error);
+    process.exit(1);
+  }
+}
+
+module.exports = {
+  connectDB,
+  client,
+};
