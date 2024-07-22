@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const App = () => {
@@ -8,15 +8,30 @@ const App = () => {
     const [token, setToken] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
 
+    useEffect(() => {
+        // Retrieve token from localStorage on component mount
+        const storedToken = localStorage.getItem('authToken');
+        if (storedToken) {
+            setToken(storedToken);
+        }
+    }, []);
+
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/login`, { username, password });
             setToken(response.data.token);
+            localStorage.setItem('authToken', response.data.token); // Store token in localStorage
             setErrorMessage(''); // Clear error message on successful login
         } catch (error) {
             setErrorMessage('Login failed'); // Set error message on failure
         }
+    };
+
+    const handleLogout = () => {
+        setToken('');
+        localStorage.removeItem('authToken'); // Remove token from localStorage
+        setErrorMessage(''); // Clear error message on successful logout
     };
 
     const handleFileChange = (e) => {
@@ -32,7 +47,7 @@ const App = () => {
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/upload`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    'Authorization': token
+                    'Authorization': `Bearer ${token}`
                 },
                 responseType: 'blob'
             });
@@ -50,7 +65,7 @@ const App = () => {
     };
 
     return (
-        <div style={{ textAlign: 'center' , marginTop: '50px', padding: '20px', border: '1px solid black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+        <div style={{ textAlign: 'center', marginTop: '50px', padding: '20px', border: '1px solid black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             <h1>Upload JSON and Get CSV, stripped from the HTML tags</h1>
             {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
             {!token ? (
@@ -70,10 +85,15 @@ const App = () => {
                     <button type="submit">Login</button>
                 </form>
             ) : (
+                <>
                 <form onSubmit={handleUpload}>
                     <input type="file" onChange={handleFileChange} />
                     <button type="submit">Upload and Convert</button>
                 </form>
+                <form onSubmit={handleLogout}>
+                    <button type="submit">Logout</button>
+                </form>
+                </>
             )}
         </div>
     );
