@@ -1,7 +1,7 @@
-const { MongoClient } = require('mongodb');
-require('dotenv').config();
+const { MongoClient } = require("mongodb");
+require("dotenv").config();
 
-const uri = process.env.MONGO_URI; // Add your MongoDB URI to the .env file
+const uri = process.env.MONGO_URI;
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -11,9 +11,9 @@ const client = new MongoClient(uri, {
 async function connectDB() {
   try {
     await client.connect();
-    console.log('Connected to MongoDB');
+    console.log("Connected to MongoDB");
   } catch (error) {
-    console.error('Failed to connect to MongoDB', error);
+    console.error("Failed to connect to MongoDB", error);
     process.exit(1);
   }
 }
