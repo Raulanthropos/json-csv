@@ -90,16 +90,16 @@ connectDB()
           if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
           }
-    
+
           const filePath = path.join(__dirname, "uploads", req.file.filename);
           const rawData = fs.readFileSync(filePath);
           const transactions = JSON.parse(rawData);
-    
+
           // Function to strip HTML tags from a string
           function stripHtml(html) {
             return html.replace(/<[^>]*>/g, "");
           }
-    
+
           // Clean the data by stripping HTML from the identified fields and removing `select_item`
           transactions.forEach((transaction) => {
             transaction.id = stripHtml(transaction.id);
@@ -112,10 +112,11 @@ connectDB()
             transaction.coupon = stripHtml(transaction.coupon);
             transaction.transaction = stripHtml(transaction.transaction);
             transaction.status = stripHtml(transaction.status);
-            transaction.action = stripHtml(transaction.action);
-            delete transaction.select_item; // Remove `select_item`
+            // transaction.action = stripHtml(transaction.action);
+            delete transaction.select_item;
+            delete transaction.action;
           });
-    
+
           // Function to convert JSON to CSV
           function jsonToCsv(jsonArray) {
             const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
@@ -126,9 +127,9 @@ connectDB()
             ); // Ensure each value is quoted and any internal quotes are doubled
             return [headers, ...rows].join("\n"); // Join headers and rows
           }
-    
+
           const csvData = jsonToCsv(transactions);
-    
+
           // Save the CSV data to a file
           const csvPath = path.join(
             __dirname,
@@ -136,14 +137,14 @@ connectDB()
             "cleaned_transactions.csv"
           );
           fs.writeFileSync(csvPath, csvData);
-    
+
           res.download(csvPath, "cleaned_transactions.csv");
         } catch (err) {
           console.error("Error processing file:", err);
           res.status(500).json({ message: "Internal Server Error" });
         }
       }
-    );    
+    );
 
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);

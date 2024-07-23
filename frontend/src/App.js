@@ -6,6 +6,7 @@ const App = () => {
   const [password, setPassword] = useState("");
   const [file, setFile] = useState(null);
   const [token, setToken] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -18,6 +19,8 @@ const App = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    setIsLoading(true);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/login`,
@@ -29,6 +32,7 @@ const App = () => {
     } catch (error) {
       setErrorMessage("Login failed"); // Set error message on failure
     }
+    setIsLoading(false);
   };
 
   const handleLogout = () => {
@@ -43,6 +47,7 @@ const App = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -75,6 +80,10 @@ const App = () => {
         console.error("File upload failed:", error.message);
       }
     }
+
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
   };
 
   return (
@@ -107,13 +116,25 @@ const App = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button type="submit">Login</button>
+          {isLoading ? (
+            <button type="submit" disabled>
+              Loading...
+            </button>
+          ) : (
+            <button type="submit">Login</button>
+          )}
         </form>
       ) : (
         <>
           <form onSubmit={handleUpload}>
             <input type="file" onChange={handleFileChange} />
-            <button type="submit">Upload and Convert</button>
+            {isLoading ? (
+              <button type="submit" disabled>
+                Loading...
+              </button>
+            ) : (
+              <button type="submit">Upload and Convert</button>
+            )}
           </form>
           <form onSubmit={handleLogout}>
             <button type="submit">Logout</button>
