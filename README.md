@@ -9,6 +9,7 @@ This project is a simple web application designed to upload a JSON file, process
 ### Data Processing: Strips HTML tags from the JSON data.
 ### CSV Conversion: Converts the processed JSON data to a CSV file.
 ### Downloadable Output: Provides the cleaned CSV file for download.
+## To be added: detailed instructions
 
 ## Usage
 
