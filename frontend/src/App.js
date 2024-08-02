@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import "react-tooltip/dist/react-tooltip.css";
+import { Tooltip } from "react-tooltip";
 
 const App = () => {
   const [username, setUsername] = useState("");
@@ -8,14 +10,18 @@ const App = () => {
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const isTestUser = localStorage.getItem("username") === "test";
+  const isTestUser = localStorage.getItem("username");
 
   useEffect(() => {
     // Retrieve token from localStorage on component mount
     const storedToken = localStorage.getItem("authToken");
+    const testUser = localStorage.getItem("username");
     if (storedToken) {
       setToken(storedToken);
     }
+    // if (testUser) {
+    //   Tooltip.rebuild();
+    // }
   }, []);
 
   const handleTestLogin = async () => {
@@ -67,28 +73,33 @@ const App = () => {
   const handleDownloadTestFile = async () => {
     try {
       setIsLoading(true); // Set loading state to true
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/download`, {
-        responseType: 'blob', // Important: ensures that the response is treated as a file
-      });
-  
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/download`,
+        {
+          responseType: "blob", // Important: ensures that the response is treated as a file
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Make sure to send the authorization token
+          },
+        }
+      );
+
       // Create a URL from the blob
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', 'testfile.json'); // Set the filename for the download
+      link.setAttribute("download", "testfile.json"); // Set the filename for the download
       document.body.appendChild(link);
       link.click();
-  
+
       // Clean up by revoking the URL and removing the link
       window.URL.revokeObjectURL(url);
       link.parentNode.removeChild(link);
     } catch (error) {
-      console.error('Error downloading file:', error.message);
-      setErrorMessage('Failed to download file'); // Update error message state
+      console.error("Error downloading file:", error.message);
+      setErrorMessage("Failed to download file"); // Update error message state
     }
     setIsLoading(false); // Set loading state to false
   };
-  
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -175,23 +186,39 @@ const App = () => {
           </button>
         </>
       ) : (
-<>
-        {isTestUser ? (
-          <button onClick={handleDownloadTestFile}>Download Test File</button>
-        ) : (
-          <form onSubmit={handleUpload}>
-            <input type="file" onChange={handleFileChange} />
-            {isLoading ? (
-              <button type="submit" disabled>Loading...</button>
-            ) : (
-              <button type="submit">Upload and Convert</button>
-            )}
+        <>
+          {isTestUser ? (
+            <div>
+              <button
+                onClick={handleDownloadTestFile}
+                data-tooltip-id="downloadTip"
+                data-tooltip-content="Click to download the test file and see the data format."
+              >
+                Download Test File
+              </button>
+              <Tooltip
+                id="downloadTip"
+                place="top"
+                effect="solid"
+              />
+              <span>test.json</span>
+            </div>
+          ) : (
+            <form onSubmit={handleUpload}>
+              <input type="file" onChange={handleFileChange} />
+              {isLoading ? (
+                <button type="submit" disabled>
+                  Loading...
+                </button>
+              ) : (
+                <button type="submit">Upload and Convert</button>
+              )}
+            </form>
+          )}
+          <form onSubmit={handleLogout}>
+            <button type="submit">Logout</button>
           </form>
-        )}
-        <form onSubmit={handleLogout}>
-          <button type="submit">Logout</button>
-        </form>
-      </>
+        </>
       )}
     </div>
   );
