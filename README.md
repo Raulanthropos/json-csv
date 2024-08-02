@@ -17,7 +17,7 @@ This project is a simple web application designed to upload a JSON file, process
 ### Upload JSON: Select and upload your JSON file.
 ### Download CSV: Receive the processed CSV file, stripped of HTML tags.
 
-# This application is tailored for a specific JSON structure and might not work for other formats.
+### Added a test user and a test file, for interested users to see how it works, with a test json file and a correct conversion to a csv file, to be used for reports.
 
 ## Live Demo
 
