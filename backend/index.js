@@ -146,6 +146,11 @@ connectDB()
       }
     );
 
+    app.post("/download", authenticateToken, (req, res) => {
+      const jsonpath = path.join(__dirname, "downloads", "test.json");
+      res.download(jsonpath, "test.json");
+    });
+
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });

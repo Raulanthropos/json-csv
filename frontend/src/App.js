@@ -8,6 +8,7 @@ const App = () => {
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const isTestUser = localStorage.getItem("username") === "test";
 
   useEffect(() => {
     // Retrieve token from localStorage on component mount
@@ -16,6 +17,21 @@ const App = () => {
       setToken(storedToken);
     }
   }, []);
+
+  const handleTestLogin = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/login`,
+        { username: "test", password: "test" }
+      );
+      setToken(response.data.token);
+      localStorage.setItem("authToken", response.data.token); // Store token in localStorage
+      localStorage.setItem("username", "test");
+      setErrorMessage(""); // Clear error message on successful login
+    } catch (error) {
+      setErrorMessage("Login failed"); // Set error message on failure
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,12 +54,41 @@ const App = () => {
   const handleLogout = () => {
     setToken("");
     localStorage.removeItem("authToken"); // Remove token from localStorage
+    localStorage.removeItem("username");
+    setUsername("");
+    setPassword("");
     setErrorMessage(""); // Clear error message on successful logout
   };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
+
+  const handleDownloadTestFile = async () => {
+    try {
+      setIsLoading(true); // Set loading state to true
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/download`, {
+        responseType: 'blob', // Important: ensures that the response is treated as a file
+      });
+  
+      // Create a URL from the blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'testfile.json'); // Set the filename for the download
+      document.body.appendChild(link);
+      link.click();
+  
+      // Clean up by revoking the URL and removing the link
+      window.URL.revokeObjectURL(url);
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading file:', error.message);
+      setErrorMessage('Failed to download file'); // Update error message state
+    }
+    setIsLoading(false); // Set loading state to false
+  };
+  
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -103,43 +148,50 @@ const App = () => {
       <h1>Upload JSON and Get CSV, stripped from the HTML tags</h1>
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       {!token ? (
-        <form onSubmit={handleLogin}>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {isLoading ? (
-            <button type="submit" disabled>
-              Loading...
-            </button>
-          ) : (
-            <button type="submit">Login</button>
-          )}
-        </form>
-      ) : (
         <>
-          <form onSubmit={handleUpload}>
-            <input type="file" onChange={handleFileChange} />
+          <form onSubmit={handleLogin}>
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
             {isLoading ? (
               <button type="submit" disabled>
                 Loading...
               </button>
             ) : (
+              <button type="submit">Login</button>
+            )}
+          </form>
+          <button onClick={handleTestLogin} disabled={isLoading}>
+            Test Login
+          </button>
+        </>
+      ) : (
+<>
+        {isTestUser ? (
+          <button onClick={handleDownloadTestFile}>Download Test File</button>
+        ) : (
+          <form onSubmit={handleUpload}>
+            <input type="file" onChange={handleFileChange} />
+            {isLoading ? (
+              <button type="submit" disabled>Loading...</button>
+            ) : (
               <button type="submit">Upload and Convert</button>
             )}
           </form>
-          <form onSubmit={handleLogout}>
-            <button type="submit">Logout</button>
-          </form>
-        </>
+        )}
+        <form onSubmit={handleLogout}>
+          <button type="submit">Logout</button>
+        </form>
+      </>
       )}
     </div>
   );
