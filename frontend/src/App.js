@@ -10,19 +10,31 @@ const App = () => {
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const isTestUser = localStorage.getItem("username");
+  const isTestUser = localStorage.getItem("username") === "test";
 
   useEffect(() => {
     // Retrieve token from localStorage on component mount
     const storedToken = localStorage.getItem("authToken");
-    const testUser = localStorage.getItem("username");
     if (storedToken) {
       setToken(storedToken);
     }
-    // if (testUser) {
-    //   Tooltip.rebuild();
-    // }
-  }, []);
+    if (isTestUser) {
+      // Automatically set the test file for the test user
+      setFile(
+        new File(
+          [
+            new Blob(
+              [
+                '{"select_item": "value", "id": "123", "code": "code", "user": "user", "membership": "membership", "amount_value": "amount", "payment_method": "method", "create_date": "date", "coupon": "-", "transaction": "transaction", "status": "status"}',
+              ],
+              { type: "application/json" }
+            ),
+          ],
+          "test.json"
+        )
+      );
+    }
+  }, [isTestUser]);
 
   const handleTestLogin = async () => {
     try {
@@ -104,6 +116,7 @@ const App = () => {
   const handleUpload = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -187,7 +200,7 @@ const App = () => {
         </>
       ) : (
         <>
-          {isTestUser ? (
+          {isTestUser && (
             <div>
               <button
                 onClick={handleDownloadTestFile}
@@ -196,25 +209,20 @@ const App = () => {
               >
                 Download Test File
               </button>
-              <Tooltip
-                id="downloadTip"
-                place="top"
-                effect="solid"
-              />
+              <Tooltip id="downloadTip" place="top" effect="solid" />
               <span>test.json</span>
             </div>
-          ) : (
-            <form onSubmit={handleUpload}>
-              <input type="file" onChange={handleFileChange} />
-              {isLoading ? (
-                <button type="submit" disabled>
-                  Loading...
-                </button>
-              ) : (
-                <button type="submit">Upload and Convert</button>
-              )}
-            </form>
           )}
+          <form onSubmit={handleUpload}>
+            {!isTestUser && <input type="file" onChange={handleFileChange} />}
+            {isLoading ? (
+              <button type="submit" disabled>
+                Loading...
+              </button>
+            ) : (
+              <button type="submit">Upload and Convert</button>
+            )}
+          </form>
           <form onSubmit={handleLogout}>
             <button type="submit">Logout</button>
           </form>
