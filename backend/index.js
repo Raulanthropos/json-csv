@@ -88,12 +88,34 @@ connectDB()
       (req, res) => {
         try {
           if (!req.file) {
+            console.log("No file uploaded");
             return res.status(400).json({ message: "No file uploaded" });
           }
 
+          console.log("File uploaded:", req.file);
+
           const filePath = path.join(__dirname, "uploads", req.file.filename);
-          const rawData = fs.readFileSync(filePath);
-          const transactions = JSON.parse(rawData);
+          const rawData = fs.readFileSync(filePath, "utf8");
+
+          if (!rawData) {
+            console.log("Uploaded file is empty");
+            return res.status(400).json({ message: "Uploaded file is empty" });
+          }
+
+          console.log("Raw data:", rawData);
+
+          let transactions;
+          try {
+            transactions = JSON.parse(rawData);
+          } catch (err) {
+            console.log("Invalid JSON file:", err);
+            return res.status(400).json({ message: "Invalid JSON file" });
+          }
+
+          if (!Array.isArray(transactions)) {
+            console.log("Parsed data is not an array");
+            return res.status(400).json({ message: "Invalid JSON structure" });
+          }
 
           // Function to strip HTML tags from a string
           function stripHtml(html) {
@@ -146,11 +168,12 @@ connectDB()
       }
     );
 
+    // Endpoint to download the test file
     app.get("/download", authenticateToken, (req, res) => {
       const jsonpath = path.join(__dirname, "downloads", "test.json");
       res.download(jsonpath, "test.json");
-    });    
-    
+    });
+
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });
