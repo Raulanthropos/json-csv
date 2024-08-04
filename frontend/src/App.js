@@ -10,29 +10,38 @@ const App = () => {
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const isTestUser = localStorage.getItem("username") === "test";
+  const isTestUser = localStorage.getItem("username");
 
   useEffect(() => {
-    // Retrieve token from localStorage on component mount
     const storedToken = localStorage.getItem("authToken");
     if (storedToken) {
       setToken(storedToken);
     }
     if (isTestUser) {
-      // Automatically set the test file for the test user
-      setFile(
-        new File(
-          [
-            new Blob(
-              [
-                '{"select_item": "value", "id": "123", "code": "code", "user": "user", "membership": "membership", "amount_value": "amount", "payment_method": "method", "create_date": "date", "coupon": "-", "transaction": "transaction", "status": "status"}',
-              ],
-              { type: "application/json" }
-            ),
-          ],
-          "test.json"
-        )
-      );
+      // Fetch the test file from the backend
+      const fetchTestFile = async () => {
+        try {
+          const response = await axios.get(
+            `${process.env.REACT_APP_API_URL}/download`,
+            {
+              responseType: "blob",
+              headers: {
+                Authorization: `Bearer ${storedToken}`,
+              },
+            }
+          );
+
+          const testFile = new File([response.data], "test.json", {
+            type: "application/json",
+          });
+          setFile(testFile);
+        } catch (error) {
+          console.error("Failed to fetch test file:", error);
+          setErrorMessage("Failed to fetch test file");
+        }
+      };
+
+      fetchTestFile();
     }
   }, [isTestUser]);
 

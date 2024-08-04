@@ -80,74 +80,105 @@ connectDB()
     });
     const upload = multer({ storage });
 
-    app.post("/upload", authenticateToken, upload.single("file"), (req, res) => {
-      try {
-        if (!req.file) {
-          console.log("No file uploaded");
-          return res.status(400).json({ message: "No file uploaded" });
-        }
-    
-        console.log("File uploaded:", req.file);
-    
-        const filePath = path.join(__dirname, "uploads", req.file.filename);
-        const rawData = fs.readFileSync(filePath, "utf8");
-    
-        if (!rawData) {
-          console.log("Uploaded file is empty");
-          return res.status(400).json({ message: "Uploaded file is empty" });
-        }
-    
-        let transactions;
+    // Endpoint to upload JSON file
+    app.post(
+      "/upload",
+      authenticateToken,
+      upload.single("file"),
+      (req, res) => {
         try {
-          transactions = JSON.parse(rawData);
+          if (!req.file) {
+            console.log("No file uploaded");
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+
+          console.log("File uploaded:", req.file);
+
+          const filePath = path.join(__dirname, "uploads", req.file.filename);
+          const rawData = fs.readFileSync(filePath, "utf8");
+
+          if (!rawData) {
+            console.log("Uploaded file is empty");
+            return res.status(400).json({ message: "Uploaded file is empty" });
+          }
+
+          console.log("Raw data:", rawData);
+
+          let transactions;
+          try {
+            transactions = JSON.parse(rawData);
+          } catch (err) {
+            console.log("Invalid JSON file:", err);
+            return res.status(400).json({ message: "Invalid JSON file" });
+          }
+
+          if (!Array.isArray(transactions)) {
+            console.log("Parsed data is not an array");
+            return res.status(400).json({ message: "Invalid JSON structure" });
+          }
+
+          // Function to strip HTML tags from a string
+          function stripHtml(html) {
+            return html.replace(/<[^>]*>/g, "");
+          }
+
+          // Clean the data by stripping HTML from the identified fields and removing `select_item`
+          transactions.forEach((transaction) => {
+            transaction.id = stripHtml(transaction.id);
+            transaction.code = stripHtml(transaction.code);
+            transaction.user = stripHtml(transaction.user);
+            transaction.membership = stripHtml(transaction.membership);
+            transaction.amount_value = stripHtml(transaction.amount_value);
+            transaction.payment_method = stripHtml(transaction.payment_method);
+            transaction.create_date = stripHtml(transaction.create_date);
+            transaction.coupon = stripHtml(transaction.coupon);
+            transaction.transaction = stripHtml(transaction.transaction);
+            transaction.status = stripHtml(transaction.status);
+            // transaction.action = stripHtml(transaction.action);
+            delete transaction.select_item;
+            delete transaction.action;
+          });
+
+          // Function to convert JSON to CSV
+          function jsonToCsv(jsonArray) {
+            const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
+            const rows = jsonArray.map((obj) =>
+              Object.values(obj)
+                .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+                .join(",")
+            ); // Ensure each value is quoted and any internal quotes are doubled
+            return [headers, ...rows].join("\n"); // Join headers and rows
+          }
+
+          const csvData = jsonToCsv(transactions);
+
+          // Save the CSV data to a file
+          const csvPath = path.join(
+            __dirname,
+            "uploads",
+            "cleaned_transactions.csv"
+          );
+          fs.writeFileSync(csvPath, csvData);
+
+          res.download(csvPath, "cleaned_transactions.csv");
         } catch (err) {
-          console.log("Invalid JSON file");
-          return res.status(400).json({ message: "Invalid JSON file" });
+          console.error("Error processing file:", err);
+          res.status(500).json({ message: "Internal Server Error" });
         }
-    
-        // Function to strip HTML tags from a string
-        function stripHtml(html) {
-          return html.replace(/<[^>]*>/g, "");
-        }
-    
-        // Clean the data by stripping HTML from the identified fields and removing `select_item`
-        transactions.forEach((transaction) => {
-          transaction.id = stripHtml(transaction.id);
-          transaction.code = stripHtml(transaction.code);
-          transaction.user = stripHtml(transaction.user);
-          transaction.membership = stripHtml(transaction.membership);
-          transaction.amount_value = stripHtml(transaction.amount_value);
-          transaction.payment_method = stripHtml(transaction.payment_method);
-          transaction.create_date = stripHtml(transaction.create_date);
-          transaction.coupon = stripHtml(transaction.coupon);
-          transaction.transaction = stripHtml(transaction.transaction);
-          transaction.status = stripHtml(transaction.status);
-          // transaction.action = stripHtml(transaction.action);
-          delete transaction.select_item;
-          delete transaction.action;
-        });
-    
-        // Function to convert JSON to CSV
-        function jsonToCsv(jsonArray) {
-          const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
-          const rows = jsonArray.map((obj) =>
-            Object.values(obj)
-              .map((value) => `"${String(value).replace(/"/g, '""')}"`)
-              .join(",")
-          ); // Ensure each value is quoted and any internal quotes are doubled
-          return [headers, ...rows].join("\n"); // Join headers and rows
-        }
-    
-        const csvData = jsonToCsv(transactions);
-    
-        // Save the CSV data to a file
-        const csvPath = path.join(__dirname, "uploads", "cleaned_transactions.csv");
-        fs.writeFileSync(csvPath, csvData);
-    
-        res.download(csvPath, "cleaned_transactions.csv");
-      } catch (err) {
-        console.error("Error processing file:", err);
-        res.status(500).json({ message: "Internal Server Error" });
       }
+    );
+
+    // Endpoint to download the test file
+    app.get("/download", authenticateToken, (req, res) => {
+      const jsonpath = path.join(__dirname, "downloads", "test.json");
+      res.download(jsonpath, "test.json");
     });
-  }
+
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB", err);
+    process.exit(1);
+  });
