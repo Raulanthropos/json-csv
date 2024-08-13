@@ -92,8 +92,6 @@ connectDB()
             return res.status(400).json({ message: "No file uploaded" });
           }
 
-          console.log("File uploaded:", req.file);
-
           const filePath = path.join(__dirname, "uploads", req.file.filename);
           const rawData = fs.readFileSync(filePath, "utf8");
 
@@ -101,8 +99,6 @@ connectDB()
             console.log("Uploaded file is empty");
             return res.status(400).json({ message: "Uploaded file is empty" });
           }
-
-          console.log("Raw data:", rawData);
 
           let transactions;
           try {
