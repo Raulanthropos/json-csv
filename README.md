@@ -1,6 +1,6 @@
 ## JSON to CSV Converter
 
-This project is a simple web application designed to upload a JSON file, process it to strip out HTML tags, and convert it into a CSV file. It is a general-purpose utility tool for handling JSON data in the format of arrays of objects, which may contain HTML tags. It is not limited to any specific object structure or use case.
+This project is a utility tool designed to upload a JSON file, process it to strip out HTML tags, and convert it into a CSV file. It is a general-purpose utility tool for handling JSON data in the format of arrays of objects, which may contain HTML tags. It is not limited to any specific object structure or use case.
 
 ## Features
 
