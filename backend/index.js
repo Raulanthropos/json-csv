@@ -117,23 +117,43 @@ connectDB()
           function stripHtml(html) {
             return html.replace(/<[^>]*>/g, "");
           }
-
-          // Clean the data by stripping HTML from the identified fields and removing `select_item`
+          
           transactions.forEach((transaction) => {
-            transaction.id = stripHtml(transaction.id);
-            transaction.code = stripHtml(transaction.code);
-            transaction.user = stripHtml(transaction.user);
-            transaction.membership = stripHtml(transaction.membership);
-            transaction.amount_value = stripHtml(transaction.amount_value);
-            transaction.payment_method = stripHtml(transaction.payment_method);
-            transaction.create_date = stripHtml(transaction.create_date);
-            transaction.coupon = stripHtml(transaction.coupon);
-            transaction.transaction = stripHtml(transaction.transaction);
-            transaction.status = stripHtml(transaction.status);
-            // transaction.action = stripHtml(transaction.action);
-            delete transaction.select_item;
-            delete transaction.action;
+            Object.keys(transaction).forEach((key) => {
+              console.log(key);
+              transaction[key] = stripHtml(transaction[key]);
+              if (key === "select_item" || key === "action") {
+                delete transaction[key];
+              }
+            });
           });
+
+          // transaction.select_item = stripHtml(transaction.select_item);
+          // transaction.action = stripHtml(transaction.action);
+          // transaction.id = stripHtml(transaction.id);
+          // transaction.code = stripHtml(transaction.code);
+          // transaction.user = stripHtml(transaction.user);
+          // transaction.membership = stripHtml(transaction
+          // transaction.amount_value = stripHtml(transaction.amount_value);
+          // transaction.payment_method = stripHtml(transaction.payment_method);
+          // transaction.create_date = stripHtml(transaction.create_date);
+          // transaction.coupon = stripHtml(transaction.coupon);
+          // transaction.transaction = stripHtml(transaction.transaction);
+          // transaction.status = stripHtml(transaction
+          // transaction.action = stripHtml(transaction.action);
+          // transaction.id = stripHtml(transaction.id);
+          // transaction.code = stripHtml(transaction.code);
+          // transaction.user = stripHtml(transaction.user);
+          // transaction.membership = stripHtml(transaction.membership);
+          // transaction.amount_value = stripHtml(transaction.amount_value);
+          // transaction.payment_method = stripHtml(transaction.payment_method);
+          // transaction.create_date = stripHtml(transaction.create_date);
+          // transaction.coupon = stripHtml(transaction.coupon);
+          // transaction.transaction = stripHtml(transaction.transaction);
+          // transaction.status = stripHtml(transaction.status);
+          // transaction.action = stripHtml(transaction.action);
+          // delete transaction.select_item;
+          // delete transaction.action;
 
           // Function to convert JSON to CSV
           function jsonToCsv(jsonArray) {
