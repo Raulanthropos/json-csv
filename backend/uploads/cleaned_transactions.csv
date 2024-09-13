@@ -1,4 +1,6 @@
-id,code,user,membership,amount_value,payment_method,create_date,coupon,transaction,status
-"1320","FRVS001320","user@example.com","ExamplePremium + Extra","45.00 EUR","PayPal","10th August 2024 2:15 pm","-","tx_1029304","Completed"
-"1321","FRVS001321","contact@example.com","Basic + Standard","15.00 EUR","Credit Card","22nd September 2024 5:50 pm","DISCOUNT5","tx_2040304","Completed"
-"1322","FRVS001322","feedback@example.com","Elite + VIP","100.00 EUR","Bank Transfer","3rd October 2024 10:10 am","-","tx_3050506","Completed"
+userId,username,email,age,city,status
+"1","john_doe","john.doe@example.com","30","New York","active"
+"2","jane_smith","jane.smith@example.com","25","Los Angeles","inactive"
+"3","alice_johnson","alice.johnson@example.com","28","Chicago","active"
+"4","robert_brown","robert.brown@example.com","35","Houston","suspended"
+"5","emily_davis","emily.davis@example.com","22","San Francisco","active"
