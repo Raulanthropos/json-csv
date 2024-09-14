@@ -180,50 +180,9 @@ const App = () => {
     >
       <h1>Upload JSON and Get CSV, stripped from the HTML tags</h1>
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
-      {!token ? (
-        <>
-          <form onSubmit={handleLogin}>
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {isLoading ? (
-              <button type="submit" disabled>
-                Loading...
-              </button>
-            ) : (
-              <button type="submit">Login</button>
-            )}
-          </form>
-          <button onClick={handleTestLogin} disabled={isLoading}>
-            Test Login
-          </button>
-        </>
-      ) : (
-        <>
-          {isTestUser && (
-            <div>
-              <button
-                onClick={handleDownloadTestFile}
-                data-tooltip-id="downloadTip"
-                data-tooltip-content="Click to download the test file and see the data format."
-              >
-                Download Test File
-              </button>
-              <Tooltip id="downloadTip" place="top" effect="solid" />
-              <span>test.json</span>
-            </div>
-          )}
+      {
           <form onSubmit={handleUpload}>
-            {!isTestUser && <input type="file" onChange={handleFileChange} />}
+            <input type="file" onChange={handleFileChange} />
             {isLoading ? (
               <button type="submit" disabled>
                 Loading...
@@ -232,11 +191,7 @@ const App = () => {
               <button type="submit">Upload and Convert</button>
             )}
           </form>
-          <form onSubmit={handleLogout}>
-            <button type="submit">Logout</button>
-          </form>
-        </>
-      )}
+      }
     </div>
   );
 };
