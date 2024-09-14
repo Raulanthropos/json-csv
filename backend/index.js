@@ -79,83 +79,78 @@ connectDB()
     const upload = multer({ storage });
 
     // Endpoint to upload JSON file
-    app.post(
-      "/upload",
-      authenticateToken,
-      upload.single("file"),
-      (req, res) => {
-        try {
-          if (!req.file) {
-            console.log("No file uploaded");
-            return res.status(400).json({ message: "No file uploaded" });
-          }
-
-          const filePath = path.join(__dirname, "uploads", req.file.filename);
-          const rawData = fs.readFileSync(filePath, "utf8");
-
-          if (!rawData) {
-            console.log("Uploaded file is empty");
-            return res.status(400).json({ message: "Uploaded file is empty" });
-          }
-
-          let transactions;
-          try {
-            transactions = JSON.parse(rawData);
-          } catch (err) {
-            console.log("Invalid JSON file:", err);
-            return res.status(400).json({ message: "Invalid JSON file" });
-          }
-
-          if (!Array.isArray(transactions)) {
-            console.log("Parsed data is not an array");
-            return res.status(400).json({ message: "Invalid JSON structure" });
-          }
-
-          // Function to strip HTML tags from a string
-          function stripHtml(html) {
-            return html.replace(/<[^>]*>/g, "");
-          }
-
-          transactions.forEach((transaction) => {
-            Object.keys(transaction).forEach((key) => {
-              transaction[key] = stripHtml(transaction[key]);
-              if (key === "select_item" || key === "action") {
-                delete transaction[key];
-              }
-            });
-          });
-
-          // Function to convert JSON to CSV
-          function jsonToCsv(jsonArray) {
-            const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
-            const rows = jsonArray.map((obj) =>
-              Object.values(obj)
-                .map((value) => `"${String(value).replace(/"/g, '""')}"`)
-                .join(",")
-            ); // Ensure each value is quoted and any internal quotes are doubled
-            return [headers, ...rows].join("\n"); // Join headers and rows
-          }
-
-          const csvData = jsonToCsv(transactions);
-
-          // Save the CSV data to a file
-          const csvPath = path.join(
-            __dirname,
-            "uploads",
-            "cleaned_transactions.csv"
-          );
-          fs.writeFileSync(csvPath, csvData);
-
-          res.download(csvPath, "cleaned_transactions.csv");
-        } catch (err) {
-          console.error("Error processing file:", err);
-          res.status(500).json({ message: "Internal Server Error" });
+    app.post("/upload", upload.single("file"), (req, res) => {
+      try {
+        if (!req.file) {
+          console.log("No file uploaded");
+          return res.status(400).json({ message: "No file uploaded" });
         }
+
+        const filePath = path.join(__dirname, "uploads", req.file.filename);
+        const rawData = fs.readFileSync(filePath, "utf8");
+
+        if (!rawData) {
+          console.log("Uploaded file is empty");
+          return res.status(400).json({ message: "Uploaded file is empty" });
+        }
+
+        let transactions;
+        try {
+          transactions = JSON.parse(rawData);
+        } catch (err) {
+          console.log("Invalid JSON file:", err);
+          return res.status(400).json({ message: "Invalid JSON file" });
+        }
+
+        if (!Array.isArray(transactions)) {
+          console.log("Parsed data is not an array");
+          return res.status(400).json({ message: "Invalid JSON structure" });
+        }
+
+        // Function to strip HTML tags from a string
+        function stripHtml(html) {
+          return html.replace(/<[^>]*>/g, "");
+        }
+
+        transactions.forEach((transaction) => {
+          Object.keys(transaction).forEach((key) => {
+            transaction[key] = stripHtml(transaction[key]);
+            if (key === "select_item" || key === "action") {
+              delete transaction[key];
+            }
+          });
+        });
+
+        // Function to convert JSON to CSV
+        function jsonToCsv(jsonArray) {
+          const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
+          const rows = jsonArray.map((obj) =>
+            Object.values(obj)
+              .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+              .join(",")
+          ); // Ensure each value is quoted and any internal quotes are doubled
+          return [headers, ...rows].join("\n"); // Join headers and rows
+        }
+
+        const csvData = jsonToCsv(transactions);
+
+        // Save the CSV data to a file
+        const csvPath = path.join(
+          __dirname,
+          "uploads",
+          "cleaned_transactions.csv"
+        );
+        fs.writeFileSync(csvPath, csvData);
+
+        res.download(csvPath, "cleaned_transactions.csv");
+      } catch (err) {
+        console.error("Error processing file:", err);
+        res.status(500).json({ message: "Internal Server Error" });
       }
-    );
+    });
 
     // Endpoint to download the test file
-    app.get("/download", authenticateToken, (req, res) => {
+    app.get("/download", (req, res) => {
       const jsonpath = path.join(__dirname, "downloads", "test.json");
       res.download(jsonpath, "test.json");
     });
