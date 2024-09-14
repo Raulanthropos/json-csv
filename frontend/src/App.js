@@ -1,11 +1,81 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "react-tooltip/dist/react-tooltip.css";
-import { Tooltip } from "react-tooltip";
+import styled from 'styled-components';
+import { createGlobalStyle } from 'styled-components';
+
+const GlobalStyle = createGlobalStyle`
+  body {
+    background-color: #f5f5dc; /* A soft, natural beige color */
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 2.5rem; /* Slightly larger, but not overwhelming */
+  color: #4a4a4a; /* A warm gray */
+  text-align: center;
+  margin: 20px 0;
+  font-weight: 400; /* Lighter for a softer look */
+  @media (max-width: 768px) {
+    font-size: 2rem; /* Adjust for smaller screens */
+  }
+`;
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+const Input = styled.input`
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  width: 80%;
+  max-width: 300px;
+  text-align: center;
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+const Button = styled.button`
+  background: #4CAF50;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background: #45a049;
+  }
+`;
 
 const App = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [file, setFile] = useState(null);
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -45,81 +115,8 @@ const App = () => {
     }
   }, [isTestUser]);
 
-  const handleTestLogin = async () => {
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/login`,
-        { username: "test", password: "test" }
-      );
-      setToken(response.data.token);
-      localStorage.setItem("authToken", response.data.token); // Store token in localStorage
-      localStorage.setItem("username", "test");
-      setErrorMessage(""); // Clear error message on successful login
-    } catch (error) {
-      setErrorMessage("Login failed"); // Set error message on failure
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    setIsLoading(true);
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/login`,
-        { username, password }
-      );
-      setToken(response.data.token);
-      localStorage.setItem("authToken", response.data.token); // Store token in localStorage
-      setErrorMessage(""); // Clear error message on successful login
-    } catch (error) {
-      setErrorMessage("Login failed"); // Set error message on failure
-    }
-    setIsLoading(false);
-  };
-
-  const handleLogout = () => {
-    setToken("");
-    localStorage.removeItem("authToken"); // Remove token from localStorage
-    localStorage.removeItem("username");
-    setUsername("");
-    setPassword("");
-    setErrorMessage(""); // Clear error message on successful logout
-  };
-
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-  };
-
-  const handleDownloadTestFile = async () => {
-    try {
-      setIsLoading(true); // Set loading state to true
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/download`,
-        {
-          responseType: "blob", // Important: ensures that the response is treated as a file
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Make sure to send the authorization token
-          },
-        }
-      );
-
-      // Create a URL from the blob
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "testfile.json"); // Set the filename for the download
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up by revoking the URL and removing the link
-      window.URL.revokeObjectURL(url);
-      link.parentNode.removeChild(link);
-    } catch (error) {
-      console.error("Error downloading file:", error.message);
-      setErrorMessage("Failed to download file"); // Update error message state
-    }
-    setIsLoading(false); // Set loading state to false
   };
 
   const handleUpload = async (e) => {
@@ -165,34 +162,37 @@ const App = () => {
   };
 
   return (
-    <div
-      style={{
-        textAlign: "center",
-        marginTop: "50px",
-        padding: "20px",
-        border: "1px solid black",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "10px",
-      }}
+    <>
+    <GlobalStyle />    
+    <Container
+      // style={{
+      //   textAlign: "center",
+      //   marginTop: "50px",
+      //   padding: "20px",
+      //   border: "1px solid black",
+      //   display: "flex",
+      //   flexDirection: "column",
+      //   alignItems: "center",
+      //   justifyContent: "center",
+      //   gap: "10px",
+      // }}
     >
-      <h1>Upload JSON and Get CSV, stripped from the HTML tags</h1>
+      <Title>Upload JSON and Get CSV, stripped from the HTML tags</Title>
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       {
-          <form onSubmit={handleUpload}>
-            <input type="file" onChange={handleFileChange} />
+          <Form onSubmit={handleUpload}>
+            <Input type="file" onChange={handleFileChange} />
             {isLoading ? (
-              <button type="submit" disabled>
+              <Button type="submit" disabled>
                 Loading...
-              </button>
+              </Button>
             ) : (
-              <button type="submit">Upload and Convert</button>
+              <Button type="submit">Upload and Convert</Button>
             )}
-          </form>
+          </Form>
       }
-    </div>
+    </Container>
+    </>
   );
 };
 
