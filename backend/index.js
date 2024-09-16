@@ -144,11 +144,12 @@ connectDB()
           for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
               const newKey = parentKey ? `${parentKey}.${key}` : key; // Create a new key in 'parent.child' format
-              if (
-                typeof obj[key] === "object" &&
-                obj[key] !== null &&
-                !Array.isArray(obj[key])
-              ) {
+              if (Array.isArray(obj[key])) {
+                // If it's an array, iterate over each item and flatten it
+                obj[key].forEach((item, index) => {
+                  flattenObject(item, `${newKey}.${index}`, res); // Use the array index as part of the key
+                });
+              } else if (typeof obj[key] === "object" && obj[key] !== null) {
                 flattenObject(obj[key], newKey, res); // Recursively flatten for objects
               } else {
                 res[newKey] = obj[key]; // Add the key-value pair
