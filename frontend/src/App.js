@@ -187,7 +187,7 @@ const App = () => {
                 Loading...
               </Button>
             ) : (
-              <Button type="submit">Upload and Convert</Button>
+              <Button type="submit">Download CSV</Button>
             )}
           </Form>
       }
