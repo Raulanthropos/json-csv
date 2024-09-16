@@ -159,6 +159,19 @@ connectDB()
           return res;
         }
 
+        function flattenRootObject(obj, res = {}) {
+          for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              if (typeof obj[key] === "object" && obj[key] !== null) {
+                flattenObject(obj[key], key, res); // Flatten object recursively
+              } else {
+                res[key] = obj[key]; // If it's not an object, add the value directly
+              }
+            }
+          }
+          return res;
+        }
+
         // Function to convert JSON to CSV
         // function jsonToCsv(jsonArray) {
         //   const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
@@ -171,14 +184,21 @@ connectDB()
         // }
 
         function jsonToCsv(jsonArray) {
-          const flatJsonArray = jsonArray.map(flattenObject); // Flatten all objects
+          // Flatten the root object
+          const flatTransactions = jsonArray.map((transaction) =>
+            flattenRootObject(transaction)
+          );
 
-          const headers = Object.keys(flatJsonArray[0]).join(","); // Get the headers from the flattened objects
-          const rows = flatJsonArray.map((obj) =>
+          // Get the headers from the flattened objects
+          const headers = Object.keys(flatTransactions[0]).join(",");
+
+          // Map through the flattened transactions to create CSV rows
+          const rows = flatTransactions.map((obj) =>
             Object.values(obj)
               .map((value) => `"${String(value).replace(/"/g, '""')}"`) // Quote and escape values
               .join(",")
           );
+
           return [headers, ...rows].join("\n"); // Join headers and rows
         }
 
