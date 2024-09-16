@@ -1,43 +1,34 @@
-[
-    {
-      "userId": "1",
-      "username": "john_doe",
-      "email": "john.doe@example.com",
-      "age": "30",
-      "city": "New York",
-      "status": "active"
+{
+  "user": {
+    "id": 1,
+    "name": "Alice",
+    "contact": {
+      "email": "alice@example.com",
+      "phone": {
+        "home": "<i>123-456</i>",
+        "work": "<b>789-012</b>"
+      }
     },
-    {
-      "userId": "2",
-      "username": "jane_smith",
-      "email": "jane.smith@example.com",
-      "age": "25",
-      "city": "Los Angeles",
-      "status": "inactive"
+    "address": {
+      "street": "123 Main St",
+      "city": "<em>Wonderland</em>",
+      "postalCode": "12345"
     },
-    {
-      "userId": "3",
-      "username": "alice_johnson",
-      "email": "alice.johnson@example.com",
-      "age": "28",
-      "city": "Chicago",
-      "status": "active"
-    },
-    {
-      "userId": "4",
-      "username": "robert_brown",
-      "email": "robert.brown@example.com",
-      "age": "35",
-      "city": "Houston",
-      "status": "suspended"
-    },
-    {
-      "userId": "5",
-      "username": "emily_davis",
-      "email": "emily.davis@example.com",
-      "age": "22",
-      "city": "San Francisco",
-      "status": "active"
-    }
-  ]
+    "orders": [
+      {
+        "orderId": 101,
+        "product": "Book",
+        "price": 12.99,
+        "status": "shipped"
+      },
+      {
+        "orderId": 102,
+        "product": "<p>Laptop</p>",
+        "price": 999.99,
+        "status": "<p>delivered</p>"
+      }
+    ]
+  }
+}
+
   

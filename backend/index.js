@@ -102,33 +102,82 @@ connectDB()
           return res.status(400).json({ message: "Invalid JSON file" });
         }
 
+        // If the parsed data is not an array, we wrap it into an array
         if (!Array.isArray(transactions)) {
-          console.log("Parsed data is not an array");
-          return res.status(400).json({ message: "Invalid JSON structure" });
+          console.log("Parsed data is not an array, wrapping into array");
+          transactions = [transactions]; // Wrap non-array objects into an array
         }
 
         // Function to strip HTML tags from a string
-        function stripHtml(html) {
-          return html.replace(/<[^>]*>/g, "");
+        // function stripHtml(html) {
+        //   return html.replace(/<[^>]*>/g, "");
+        // }
+
+        function stripHtmlRecursive(data) {
+          if (typeof data === "string") {
+            return data.replace(/<[^>]*>/g, "");
+          } else if (Array.isArray(data)) {
+            return data.map(stripHtmlRecursive);
+          } else if (typeof data === "object" && data !== null) {
+            return Object.fromEntries(
+              Object.entries(data).map(([key, value]) => [
+                key,
+                stripHtmlRecursive(value),
+              ])
+            );
+          }
+          return data;
         }
 
-        transactions.forEach((transaction) => {
-          Object.keys(transaction).forEach((key) => {
-            transaction[key] = stripHtml(transaction[key]);
-            if (key === "select_item" || key === "action") {
-              delete transaction[key];
+        // transactions.forEach((transaction) => {
+        //   Object.keys(transaction).forEach((key) => {
+        //     transaction[key] = stripHtmlRecursive(transaction[key]);
+        //     if (key === "select_item" || key === "action") {
+        //       delete transaction[key];
+        //     }
+        //   });
+        // });
+
+        transactions = transactions.map(stripHtmlRecursive);
+
+        function flattenObject(obj, parentKey = "", res = {}) {
+          for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              const newKey = parentKey ? `${parentKey}.${key}` : key; // Create a new key in 'parent.child' format
+              if (
+                typeof obj[key] === "object" &&
+                obj[key] !== null &&
+                !Array.isArray(obj[key])
+              ) {
+                flattenObject(obj[key], newKey, res); // Recursively flatten for objects
+              } else {
+                res[newKey] = obj[key]; // Add the key-value pair
+              }
             }
-          });
-        });
+          }
+          return res;
+        }
 
         // Function to convert JSON to CSV
+        // function jsonToCsv(jsonArray) {
+        //   const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
+        //   const rows = jsonArray.map((obj) =>
+        //     Object.values(obj)
+        //       .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+        //       .join(",")
+        //   ); // Ensure each value is quoted and any internal quotes are doubled
+        //   return [headers, ...rows].join("\n"); // Join headers and rows
+        // }
+
         function jsonToCsv(jsonArray) {
-          const headers = Object.keys(jsonArray[0]).join(","); // Get the headers
-          const rows = jsonArray.map((obj) =>
+          const flatJsonArray = jsonArray.map(flattenObject); // Flatten all objects
+
+          const headers = Object.keys(flatJsonArray[0]).join(","); // Get the headers from the flattened objects
+          const rows = flatJsonArray.map((obj) =>
             Object.values(obj)
-              .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+              .map((value) => `"${String(value).replace(/"/g, '""')}"`) // Quote and escape values
               .join(",")
-          ); // Ensure each value is quoted and any internal quotes are doubled
+          );
           return [headers, ...rows].join("\n"); // Join headers and rows
         }
 
