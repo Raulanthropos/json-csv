@@ -48,24 +48,55 @@ const Form = styled.form`
   }
 `;
 
-const Input = styled.input`
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+// const Input = styled.input`
+//   padding: 10px;
+//   font-size: 1rem;
+//   border: 1px solid #ccc;
+//   border-radius: 5px;
+//   margin-bottom: 20px;
+//   width: 80%;
+//   max-width: 300px;
+//   text-align: center;
+//   @media (max-width: 768px) {
+//     width: 100%;
+//   }
+// `;
+
+const FileInputWrapper = styled.div`
+  display: flex;
+  align-items: center;
   margin-bottom: 20px;
-  width: 80%;
-  max-width: 300px;
-  text-align: center;
-  @media (max-width: 768px) {
-    width: 100%;
+`;
+
+const HiddenInput = styled.input`
+  display: none;
+`;
+
+const CustomButton = styled.button`
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 10px;
+
+  &:hover {
+    background-color: #2980b9;
   }
+`;
+
+const FileName = styled.span`
+  font-size: 14px;
+  color: #555;
 `;
 
 const Button = styled.button`
   background: #4caf50;
   color: white;
   padding: 10px;
+  font-size: 16px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -155,7 +186,18 @@ const App = () => {
         {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
         {
           <Form onSubmit={handleUpload}>
-            <Input type="file" onChange={handleFileChange} />
+            <FileInputWrapper>
+              <HiddenInput type="file" onChange={handleFileChange} id="file" />
+              <CustomButton
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent form submission
+                  document.getElementById("file").click(); // Trigger file input click
+                }}
+              >
+                Choose File
+              </CustomButton>
+              <FileName>{file ? file.name : "No file chosen"}</FileName>
+            </FileInputWrapper>
             {isLoading ? (
               <DisabledButton type="submit">Loading...</DisabledButton>
             ) : !file ? (
