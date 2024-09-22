@@ -177,7 +177,7 @@ const App = () => {
       //   gap: "10px",
       // }}
     >
-      <Title>Upload JSON and Get CSV, stripped from the HTML tags</Title>
+      <Title>Upload JSON and Get CSV, stripped from any HTML tags</Title>
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       {
           <Form onSubmit={handleUpload}>
