@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "react-tooltip/dist/react-tooltip.css";
-import styled from 'styled-components';
-import { createGlobalStyle } from 'styled-components';
+import styled from "styled-components";
+import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -63,7 +63,7 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   padding: 10px;
   border: none;
@@ -75,45 +75,23 @@ const Button = styled.button`
   }
 `;
 
+const DisabledButton = styled(Button)`
+  opacity: 0.5;
+  cursor: not-allowed;
+`;
+
 const App = () => {
   const [file, setFile] = useState(null);
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const isTestUser = localStorage.getItem("username");
 
   useEffect(() => {
     const storedToken = localStorage.getItem("authToken");
     if (storedToken) {
       setToken(storedToken);
     }
-    if (isTestUser) {
-      // Fetch the test file from the backend
-      const fetchTestFile = async () => {
-        try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_API_URL}/download`,
-            {
-              responseType: "blob",
-              headers: {
-                Authorization: `Bearer ${storedToken}`,
-              },
-            }
-          );
-
-          const testFile = new File([response.data], "test.json", {
-            type: "application/json",
-          });
-          setFile(testFile);
-        } catch (error) {
-          console.error("Failed to fetch test file:", error);
-          setErrorMessage("Failed to fetch test file");
-        }
-      };
-
-      fetchTestFile();
-    }
-  }, [isTestUser]);
+  }, []);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -143,6 +121,7 @@ const App = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
+      setErrorMessage("");
       link.setAttribute("download", "cleaned_transactions.csv");
       document.body.appendChild(link);
       link.click();
@@ -150,9 +129,9 @@ const App = () => {
       if (error.response && error.response.data) {
         const errorBlob = error.response.data;
         const errorText = await errorBlob.text();
-        console.error("File upload failed:", errorText);
+        setErrorMessage(errorText.replace(/<[^>]*>/g, ""));
       } else {
-        console.error("File upload failed:", error.message);
+        setErrorMessage(error.message.replace(/<[^>]*>/g, ""));
       }
     }
 
@@ -163,35 +142,25 @@ const App = () => {
 
   return (
     <>
-    <GlobalStyle />    
-    <Container
-      // style={{
-      //   textAlign: "center",
-      //   marginTop: "50px",
-      //   padding: "20px",
-      //   border: "1px solid black",
-      //   display: "flex",
-      //   flexDirection: "column",
-      //   alignItems: "center",
-      //   justifyContent: "center",
-      //   gap: "10px",
-      // }}
-    >
-      <Title>Upload JSON and Get CSV, stripped from any HTML tags</Title>
-      {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
-      {
+      <GlobalStyle />
+      <Container>
+        <Title>Upload JSON and Get CSV, stripped from any HTML tags</Title>
+        {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
+        {
           <Form onSubmit={handleUpload}>
             <Input type="file" onChange={handleFileChange} />
             {isLoading ? (
-              <Button type="submit" disabled>
-                Loading...
-              </Button>
+              <DisabledButton type="submit">Loading...</DisabledButton>
+            ) : !file ? (
+              <DisabledButton type="submit">
+                No JSON is selected!
+              </DisabledButton>
             ) : (
               <Button type="submit">Download CSV</Button>
             )}
           </Form>
-      }
-    </Container>
+        }
+      </Container>
     </>
   );
 };
