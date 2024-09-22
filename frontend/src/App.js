@@ -78,6 +78,13 @@ const Button = styled.button`
 const DisabledButton = styled(Button)`
   opacity: 0.5;
   cursor: not-allowed;
+  background: #ccc;
+  color: #000;
+
+  &:hover {
+    color: #fff;
+    background: #ccc;
+  }
 `;
 
 const App = () => {
